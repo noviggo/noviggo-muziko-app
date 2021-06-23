@@ -118,7 +118,11 @@ function SyncStatus() {
             tintColor={Colors.all.blue}
             backgroundColor={getColor(colorScheme, 'backgroundMuted')}
           >
-            {() => <Text style={{ fontSize: 11 }}>{libraryState?.progressMessage}</Text>}
+            {() => (
+              <Text style={{ fontSize: 11, color: getColor(colorScheme, 'text') }}>
+                {libraryState?.progressMessage}
+              </Text>
+            )}
           </AnimatedCircularProgress>
         )}
       </View>
@@ -132,11 +136,15 @@ function SyncButton() {
   const libraryState = useAppSelector(getLibraryState);
   const { tracksRepository, albumsRepository, artistsRepository, queueRepository } = useDatabaseConnection();
   const onPressSyncLibrary = async () => {
-    await clearMediaLibraryCache(tracksRepository, artistsRepository, albumsRepository, queueRepository);
+    try {
+      await clearMediaLibraryCache(tracksRepository, artistsRepository, albumsRepository, queueRepository);
 
-    settings.useRemoteLibrary && settings.remoteLibraryUrl
-      ? await syncRemoteMediaLibrary(settings.remoteLibraryUrl, tracksRepository, artistsRepository, albumsRepository)
-      : await syncLocalMediaLibrary(tracksRepository, artistsRepository, albumsRepository);
+      settings.useRemoteLibrary && settings.remoteLibraryUrl
+        ? await syncRemoteMediaLibrary(settings.remoteLibraryUrl, tracksRepository, artistsRepository, albumsRepository)
+        : await syncLocalMediaLibrary(tracksRepository, artistsRepository, albumsRepository);
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <View style={{ marginBottom: 20, marginHorizontal: 10 }}>
@@ -191,6 +199,7 @@ function getStyles(colorScheme: ColorSchemeName) {
       color: getColor(colorScheme, 'textMuted'),
       fontWeight: 'normal',
       fontSize: 15,
+      marginRight: 10,
     },
   });
 }

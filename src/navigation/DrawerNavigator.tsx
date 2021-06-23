@@ -64,6 +64,7 @@ function NavStackNavigator() {
           component={LibraryNavigator}
           options={{
             headerShown: true,
+
             headerLeft: () => (
               <View style={{flexDirection: "row", alignItems:"center"}}>
                 <Button
@@ -72,7 +73,7 @@ function NavStackNavigator() {
                   onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
                   icon={<FontAwesomeIcon size={20} icon={faBars} color="white" />}
                 />
-                <Text style={{fontWeight: "bold", fontSize: 20, color: "white", marginLeft: 25}}>Library</Text>
+                {/* <Text style={{fontWeight: "bold", fontSize: 20, color: "white", marginLeft: 25}}>Library</Text> */}
               </View>
             ),
           }}

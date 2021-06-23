@@ -123,7 +123,6 @@ export async function clearMediaLibraryCache(
 export async function getSpotifyClient() {
   var client = new SpotifyWebApi();
   const spotifyKeys = SPOTIFY_KEYS;
-
   const spotifyToken = await axios.post(
     'https://accounts.spotify.com/api/token',
     queryString.stringify({ grant_type: 'client_credentials' }),
@@ -198,6 +197,7 @@ export async function syncLocalMediaLibrary(
     console.log(Math.floor(Date.now() - start));
     store.dispatch(syncComplete());
   } catch (error) {
+    store.dispatch(syncFailed('Failed'));
     alert(error);
   } finally {
     store.dispatch(libraryRefreshed());
@@ -215,7 +215,6 @@ export async function syncRemoteMediaLibrary(
     const spotifyClient = await getSpotifyClient();
     !serverUrl.endsWith('/') ? (serverUrl += '/') : null;
     const client = getServerClient(serverUrl);
-
     const validateServer = await client
       .get(`muziko/api/health`, { timeout: 20 })
       .then(() => true)
@@ -224,6 +223,8 @@ export async function syncRemoteMediaLibrary(
       store.dispatch(syncFailed('Network Failure'));
       return;
     }
+
+
     const mediaCountResponse = await client.get<ApiResponse<Track[]>>(`muziko/api/tracks?offset=0&take=-1`);
     const mediaCount = mediaCountResponse.data._meta?.stats?.count ? mediaCountResponse.data._meta?.stats?.count : 0;
     store.dispatch(syncStart(mediaCount));
@@ -255,11 +256,10 @@ export async function syncRemoteMediaLibrary(
     console.log(Math.floor(Date.now() - start));
     store.dispatch(syncComplete());
   } catch (error) {
+    store.dispatch(syncFailed('Failed'));
     alert(error);
   } finally {
-    setTimeout(() => {
-      store.dispatch(libraryRefreshed());
-    }, 1000);
+    store.dispatch(libraryRefreshed());
   }
 }
 
