@@ -8,7 +8,7 @@ import { useCallback, useState } from 'react';
 import { useEffect } from 'react';
 import { FlatList, ListRenderItem, useColorScheme, View, Text } from 'react-native';
 import { Avatar, Button, ListItem } from 'react-native-elements';
-import Toast from 'react-native-toast-message';
+import Toast from 'react-native-simple-toast';
 
 import { useDatabaseConnection } from '../data/connection';
 import { Album, Artist } from '../data/entities/mediaEntities';
@@ -53,20 +53,11 @@ export default function ArtistAlbumsScreen() {
   };
 
   const addToQueue = async (album: Album) => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     const albumTracks = await albumsRepository.get(album.id);
     if (!albumTracks?.tracks) return;
     queueRepository.addToEnd(sort(albumTracks.tracks).asc([p => p.trackNo]));
-    Toast.hide();
-    Toast.show({
-      type: 'info',
-      text1: 'Queue Update',
-      text2: `${albumTracks.tracks.length} songs added`,
-      position: 'bottom',
-      onPress: () => {
-        navigation.navigate('QueueScreen');
-        Toast.hide();
-      },
-    });
+    Toast.show(`${albumTracks.tracks.length} songs added`);
   };
 
   const playAlbum = async (album: Album) => {
@@ -74,17 +65,7 @@ export default function ArtistAlbumsScreen() {
     const albumTracks = await albumsRepository.get(album.id);
     if (!albumTracks?.tracks) return;
     queueRepository.play(sort(albumTracks.tracks).asc([p => p.trackNo]));
-    Toast.hide();
-    Toast.show({
-      type: 'info',
-      text1: 'Now Playing',
-      text2: `${album.name}`,
-      position: 'bottom',
-      onPress: () => {
-        navigation.navigate('QueueScreen');
-        Toast.hide();
-      },
-    });
+    Toast.show(`Now Playing ${album.name}`);
   };
 
   const renderItem: ListRenderItem<Album> = ({ item }) => (

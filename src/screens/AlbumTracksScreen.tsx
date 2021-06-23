@@ -8,7 +8,7 @@ import * as React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, ListRenderItem, Text, useColorScheme, View } from 'react-native';
 import { Avatar, Button, ListItem } from 'react-native-elements';
-import Toast from 'react-native-toast-message';
+import Toast from 'react-native-simple-toast';
 import { State } from 'react-native-track-player';
 
 import { useDatabaseConnection } from '../data/connection';
@@ -69,17 +69,7 @@ export default function AlbumTracksScreen() {
   const addToEnd = async (track: Track) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     await queueRepository.addToEnd([track]);
-    Toast.hide();
-    Toast.show({
-      type: 'info',
-      text1: 'Queue Update',
-      text2: `Added ${track.title}`,
-      position: 'bottom',
-      onPress: () => {
-        navigation.navigate('QueueScreen');
-        Toast.hide();
-      },
-    });
+    Toast.show(`Added ${track.title}`);
   };
 
   const renderItem: ListRenderItem<Track> = ({ item }) => (
@@ -97,7 +87,9 @@ export default function AlbumTracksScreen() {
           style={{ width: 25 }}
         />
       ) : (
-        <Text style={{ width: 25, textAlign: 'center' }}>{item?.trackNo ? item?.trackNo : null}</Text>
+        <Text style={{ width: 25, textAlign: 'center', color: getColor(colorScheme, 'textMuted') }}>
+          {item?.trackNo ? item?.trackNo : null}
+        </Text>
       )}
 
       <ListItem.Content>

@@ -14,6 +14,7 @@ import { StyleSheet, Text, useColorScheme, View } from 'react-native';
 import { Avatar, Button } from 'react-native-elements';
 import LinearGradient from 'react-native-linear-gradient';
 import { createNativeStackNavigator } from 'react-native-screens/native-stack';
+import * as Device from 'expo-device';
 
 import Colors from '../constants/Colors';
 import { useAppSelector } from '../hooks/useRedux';
@@ -64,18 +65,7 @@ function NavStackNavigator() {
           component={LibraryNavigator}
           options={{
             headerShown: true,
-
-            headerLeft: () => (
-              <View style={{flexDirection: "row", alignItems:"center"}}>
-                <Button
-                  type="clear"
-                  containerStyle={{ borderRadius: 50 }}
-                  onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
-                  icon={<FontAwesomeIcon size={20} icon={faBars} color="white" />}
-                />
-                {/* <Text style={{fontWeight: "bold", fontSize: 20, color: "white", marginLeft: 25}}>Library</Text> */}
-              </View>
-            ),
+            headerLeft: () => <LibraryHeaderContent />,
           }}
         />
         <NavStack.Screen name="QueueScreen" component={QueueScreen} options={{ title: 'Queue' }} />
@@ -88,6 +78,26 @@ function NavStackNavigator() {
     </>
   );
 }
+
+function LibraryHeaderContent() {
+  const navigation = useNavigation();
+  const isApple = Device.brand === 'Apple' ? true : false;
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <Button
+        type="clear"
+        containerStyle={{ borderRadius: 50 }}
+        onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
+        icon={<FontAwesomeIcon size={20} icon={faBars} color="white" />}
+      />
+      {isApple ? null : (
+        <Text style={{ fontWeight: 'bold', fontSize: 19, color: 'white', marginLeft: 25 }}>Library</Text>
+      )}
+    </View>
+  );
+}
+
 function CustomDrawerContent(props: DrawerContentComponentProps<DrawerContentOptions>) {
   const currentRoute = useAppSelector(getCurrentRoute);
   const nowPlaying = useAppSelector(getNowPlaying);
@@ -112,7 +122,6 @@ function CustomDrawerContent(props: DrawerContentComponentProps<DrawerContentOpt
         <View>
           {nowPlaying?.artwork ? (
             <Avatar
-              rounded
               size={60}
               placeholderStyle={{ backgroundColor: 'transparent' }}
               source={{ uri: nowPlaying?.artwork }}

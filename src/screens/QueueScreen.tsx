@@ -72,7 +72,9 @@ export default function PlayQueueScreen() {
           style={{ width: 25 }}
         />
       ) : (
-        <Text style={{ width: 25, textAlign: 'center' }}>{item.order + 1}</Text>
+        <Text style={{ width: 25, textAlign: 'center', color: getColor(colorScheme, 'textMuted') }}>
+          {item.order + 1}
+        </Text>
       )}
       <ListItem.Content>
         <View style={styles.listContents}>
