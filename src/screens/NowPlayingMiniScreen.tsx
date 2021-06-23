@@ -26,10 +26,11 @@ import { getColor } from '../utilities';
 function TrackProgress() {
   const { position, duration } = useProgress();
   const playerState = useAppSelector(getPlayerState);
+  const nowPlaying = useAppSelector(getNowPlaying);
   return (
     <LinearProgress
-      color={Colors.all.blue}
-      value={!duration || playerState === State.Stopped ? 0 : position / duration}
+      color={Colors.all.purple}
+      value={!duration || playerState === State.Stopped || !nowPlaying ? 0 : position / duration}
       variant="determinate"
     />
   );

@@ -30,6 +30,7 @@ export default function PlayQueueScreen() {
   const libraryRefreshed = useAppSelector(getLibraryRefreshed);
   const queueLastUpdated = useAppSelector(getQueueState);
   const [queue, setQueue] = useState<Queued[]>([]);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const loadQueue = useCallback(async () => {
     let duration = 0;
     const queue = await queueRepository.getAll();
@@ -38,6 +39,7 @@ export default function PlayQueueScreen() {
     });
     setQueue(queue);
     setDuration(formatDuration(duration));
+    setIsLoaded(true);
   }, [queueRepository, libraryRefreshed, nowPlaying]);
   useEffect(() => {
     loadQueue();
@@ -110,6 +112,22 @@ export default function PlayQueueScreen() {
         keyExtractor={item => item.id}
         extraData={[nowPlaying, playerState]}
       />
+      {isLoaded && queue.length === 0 ? <EmptyQueue /> : null}
+    </View>
+  );
+}
+
+function EmptyQueue() {
+  const colorScheme = useColorScheme();
+  return (
+    <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center' }}>
+      <LottieView
+        source={require('../animations/45661-sleep-panda.json')}
+        autoPlay={true}
+        loop={true}
+        style={{ width: '80%' }}
+      />
+      <Text style={{ color: getColor(colorScheme, 'textMuted'), fontSize: 24, marginTop: -40 }}>Queue Empty</Text>
     </View>
   );
 }

@@ -118,6 +118,7 @@ export async function clearMediaLibraryCache(
   await albumsRepository.deleteAll();
   await artistsRepository.deleteAll();
   await queueRepository.clear();
+  store.dispatch(libraryRefreshed());
 }
 
 export async function getSpotifyClient() {

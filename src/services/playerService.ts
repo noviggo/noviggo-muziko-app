@@ -82,11 +82,8 @@ export async function trackNowPlaying() {
 }
 
 export async function clearNowPlaying() {
-  const state = await TrackPlayer.getState();
-  if (state === State.Playing) {
-    await TrackPlayer.stop();
-    await TrackPlayer.reset();
-  }
+  await TrackPlayer.stop();
+  await TrackPlayer.reset();
   await AsyncStorage.removeItem(nowPlayingPositionKey);
   store.dispatch(setNowPlaying(null));
   store.dispatch(setNowPlayingBackground('transparent'));
