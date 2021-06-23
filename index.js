@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import "reflect-metadata";
+import 'reflect-metadata';
 // import TrackPlayer from "react-native-track-player"
 import { registerRootComponent } from 'expo';
 
