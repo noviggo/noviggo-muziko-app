@@ -1,0 +1,12 @@
+{
+  "name": "noviggomuziko",
+  "displayName": "noviggo-muziko",
+  "expo": {
+    "name": "noviggo-muziko",
+    "slug": "noviggo-muziko",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
