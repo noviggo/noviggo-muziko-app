@@ -64,8 +64,8 @@ export default function AppShell() {
     switch (event.type) {
       case Event.PlaybackError:
         console.warn('An error occurred while playing the current track.', event);
-        const queue = await queueRepository.getAll();
-        await initTrackPlayer(queue);
+     /*    const queue = await queueRepository.getAll();
+        await initTrackPlayer(queue); */
         break;
       case Event.PlaybackTrackChanged:
         nowPlayingSubject.next(event);
