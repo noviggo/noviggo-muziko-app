@@ -5,8 +5,12 @@
     "name": "noviggo-muziko",
     "slug": "noviggo-muziko",
     "version": "1.0.0",
+    "scheme": "noviggo-muziko",
     "assetBundlePatterns": [
       "**/*"
-    ]
+    ],
+    "packagerOpts": {
+      "config": "metro.config.js"
+    }
   }
 }

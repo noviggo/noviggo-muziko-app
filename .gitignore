@@ -52,3 +52,9 @@ buck-out/
 # Expo
 .expo/
 web-build/
+
+# ENV
+*.env
+
+# NPM
+*.npmrc
