@@ -59,7 +59,7 @@
     "react-native-screens": "~3.0.0",
     "react-native-text-ticker": "^1.12.0",
     "react-native-toast-message": "^1.4.9",
-    "react-native-track-player": "^1.2.7",
+    "react-native-track-player": "2.0.0-rc15",
     "react-native-unimodules": "~0.13.3",
     "react-native-web": "~0.13.12",
     "reflect-metadata": "^0.1.13",
