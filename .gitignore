@@ -30,6 +30,8 @@ build/
 local.properties
 *.iml
 *.hprof
+android/app/src/main/res
+index.android.bundle
 
 # node.js
 #
@@ -58,3 +60,4 @@ web-build/
 
 # NPM
 *.npmrc
+

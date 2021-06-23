@@ -1,4 +1,3 @@
-import * as SplashScreen from 'expo-splash-screen';
 import * as React from 'react';
 import { useEffect } from 'react';
 import TrackPlayer from 'react-native-track-player';
@@ -12,14 +11,12 @@ export default function useTrackPlayer() {
   useEffect(() => {
     async function setupTrackPlayer() {
       try {
-        await SplashScreen.preventAutoHideAsync();
         const queue = await queueRepository.getAll();
         await initTrackPlayer(queue);
       } catch (e) {
         console.warn(e);
       } finally {
         setIsLoading(false);
-        await SplashScreen.hideAsync();
       }
     }
     setupTrackPlayer();
