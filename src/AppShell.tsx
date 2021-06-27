@@ -8,6 +8,7 @@ import { enableScreens } from 'react-native-screens';
 import { Event, useTrackPlayerEvents } from 'react-native-track-player';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
+import useDeviceConnection from './hooks/useDeviceConntection';
 
 import usePersistSettings from './hooks/usePersistSettings';
 import useTheme from './hooks/useTheme';
@@ -23,6 +24,7 @@ export default function AppShell() {
   enableScreens();
   useTrackPlayer();
   usePersistSettings();
+  // useDeviceConnection();
   nowPlayingSubject.pipe(debounceTime(100)).subscribe(async () => {
     await trackNowPlaying();
   });
