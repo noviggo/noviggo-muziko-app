@@ -60,25 +60,21 @@ export class QueueRepository {
     return queue;
   }
 
-  /*   public async playNext(tracks: Track[]): Promise<Queued[]> {
-      const nowPlaying = await TrackPlayer.getPosition();
-      const existingQueue = await this.getAll();
-      const nowPlayingIndex = existingQueue.length > 0 ? existingQueue[existingQueue.length]?.order : 0;
-      const addedQueue = new Array<Queued>();
-      tracks.forEach(track => {
-        const queued = this.ormRepository.create(this.mapToQueued(track, nowPlayingIndex + 1));
-        addedQueue.push(queued);
-      });
-      await this.ormRepository.save(addedQueue);
-      await TrackPlayer.add(addedQueue);
-      store.dispatch(queueUpdated());
-      return await this.getAll();
-    } */
-
   public async remove(index: number): Promise<void> {
     if (index < 0) return;
+    const nowPlayingIndex = await TrackPlayer.getCurrentTrack();
+    let queue = (await TrackPlayer.getQueue()) as Queued[];
+    if (nowPlayingIndex === index && queue.length === 1) {
+      await TrackPlayer.reset();
+      await this.clear();
+      return;
+    } else if (nowPlayingIndex === index && index < queue.length - 1) {
+      TrackPlayer.skipToNext();
+    } else if (nowPlayingIndex === index && index > 0) {
+      TrackPlayer.skipToPrevious();
+    }
     await TrackPlayer.remove(index);
-    const queue = (await TrackPlayer.getQueue()) as Queued[];
+    queue = (await TrackPlayer.getQueue()) as Queued[];
     for (let index = 0; index < queue.length; index++) {
       const currentQueued = queue[index];
       currentQueued.order = index;

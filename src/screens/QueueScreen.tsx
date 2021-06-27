@@ -44,7 +44,7 @@ export default function PlayQueueScreen() {
   useEffect(() => {
     loadQueue();
     return () => {};
-  }, [loadQueue, queueLastUpdated]);
+  }, [queueLastUpdated]);
 
   useEffect(() => {
     navigation.setOptions({

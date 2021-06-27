@@ -10,6 +10,7 @@ import { store } from './store';
 
 LogBox.ignoreLogs(["Accessing the 'state' property of the 'route' object is not supported."]);
 LogBox.ignoreLogs(['Setting a timer']);
+LogBox.ignoreLogs(['Calling getNode() on the ref of an Animated component']);
 global.Buffer = Buffer;
 
 export default function App() {
