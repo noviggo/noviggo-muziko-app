@@ -1,5 +1,5 @@
 import { sort } from 'fast-sort';
-import TrackPlayer from 'react-native-track-player';
+import TrackPlayer, { State } from 'react-native-track-player';
 import { Connection, Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -82,6 +82,27 @@ export class QueueRepository {
     await this.ormRepository.clear();
     await this.ormRepository.save(queue);
     store.dispatch(queueUpdated());
+  }
+
+  public async reorder(orderedQueue: Queued[]) {
+    const queue = (await TrackPlayer.getQueue()) as Queued[];
+    const nowPlayingIndex = await TrackPlayer.getCurrentTrack();
+    const nowPlaying = queue[nowPlayingIndex];
+    const newNowPlayingIndex = orderedQueue.findIndex(p => p.id === nowPlaying.id);
+    const currentPosition = await TrackPlayer.getPosition();
+    const playerState = await TrackPlayer.getState();
+    for (let index = 0; index < orderedQueue.length; index++) {
+      const queued = orderedQueue[index];
+      queued.order = index;
+    }
+    await this.ormRepository.save(orderedQueue);
+    store.dispatch(queueUpdated());
+    TrackPlayer.reset().then(async () => {
+      await TrackPlayer.add(orderedQueue);
+      await TrackPlayer.skip(newNowPlayingIndex);
+      await TrackPlayer.seekTo(currentPosition);
+      if (playerState === State.Playing) TrackPlayer.play();
+    });
   }
 
   public mapToQueued(track: Track, order: number): Queued {

@@ -1,17 +1,19 @@
 import { faTimesCircle, faTrash } from '@fortawesome/pro-duotone-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { useNavigation } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
 import * as React from 'react';
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, ListRenderItem, Text, useColorScheme, View } from 'react-native';
+import { Text, useColorScheme, View } from 'react-native';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { Button, ListItem } from 'react-native-elements';
 import { State } from 'react-native-track-player';
 
 import Colors from '../constants/Colors';
 import { useDatabaseConnection } from '../data/connection';
 import { Queued } from '../data/entities/mediaEntities';
-import { useAppSelector } from '../hooks/useRedux';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { skip } from '../services/playerService';
 import { getLibraryRefreshed } from '../slices/libraryRefreshSlice';
 import { getNowPlaying } from '../slices/nowPlayingSlice';
@@ -31,20 +33,22 @@ export default function PlayQueueScreen() {
   const queueLastUpdated = useAppSelector(getQueueState);
   const [queue, setQueue] = useState<Queued[]>([]);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const loadQueue = useCallback(async () => {
-    let duration = 0;
-    const queue = await queueRepository.getAll();
-    queue.forEach(track => {
-      duration += track.duration;
-    });
-    setQueue(queue);
-    setDuration(formatDuration(duration));
-    setIsLoaded(true);
-  }, [queueRepository, libraryRefreshed, nowPlaying]);
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
+    const loadQueue = async () => {
+      let duration = 0;
+      const queue = await queueRepository.getAll();
+      setQueue(queue);
+      queue.forEach(track => {
+        duration += track.duration;
+      });
+      setDuration(formatDuration(duration));
+      setIsLoaded(true);
+    };
     loadQueue();
     return () => {};
-  }, [queueLastUpdated]);
+  }, [queueLastUpdated, libraryRefreshed]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -59,43 +63,59 @@ export default function PlayQueueScreen() {
     });
   }, [navigation]);
 
-  const renderItem: ListRenderItem<Queued> = ({ item }) => (
-    <ListItem
-      onPress={() => skip(item)}
-      containerStyle={[styles.listItemContainer, { padding: 15 }]}
-      underlayColor={getColor(colorScheme, 'background')}
-    >
-      {item.id === nowPlaying?.id ? (
-        <LottieView
-          source={require('../animations/4080-sound-bars-animation.json')}
-          autoPlay={true}
-          loop={true}
-          speed={playerState === State.Playing ? 1 : 0}
-          style={{ width: 25 }}
-        />
-      ) : (
-        <Text style={{ width: 25, textAlign: 'center', color: getColor(colorScheme, 'textMuted') }}>
-          {item.order + 1}
-        </Text>
-      )}
-      <ListItem.Content>
-        <View style={styles.listContents}>
-          <View style={styles.listContentsLeft}>
-            <Text style={styles.listTitle}>{item.title}</Text>
-            <Text style={styles.listSubtitle}>{item.album}</Text>
-          </View>
-          <View style={styles.listContentsRight}>
-            <Text style={styles.listItemDuration}>{formatDuration(item?.duration)}</Text>
-            <Button
-              onPress={() => queueRepository.remove(item.order)}
-              type="clear"
-              containerStyle={styles.listItemButton}
-              icon={<FontAwesomeIcon icon={faTimesCircle} size={14} color={getColor(colorScheme, 'icon')} />}
+  const reorder = async (orderedQueue: Queued[]) => {
+    setQueue(orderedQueue);
+    await queueRepository.reorder(orderedQueue);
+  };
+
+  const dragAction = async (drag: () => void) => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    drag();
+  };
+
+  const renderItem = useCallback(
+    ({ item, drag }: RenderItemParams<Queued>) => {
+      return (
+        <ListItem
+          onPress={() => skip(item)}
+          onLongPress={() => dragAction(drag)}
+          containerStyle={[styles.listItemContainer, { padding: 15 }]}
+          underlayColor={getColor(colorScheme, 'background')}
+        >
+          {item.id === nowPlaying?.id ? (
+            <LottieView
+              source={require('../animations/4080-sound-bars-animation.json')}
+              autoPlay={true}
+              loop={true}
+              speed={playerState === State.Playing ? 1 : 0}
+              style={{ width: 25 }}
             />
-          </View>
-        </View>
-      </ListItem.Content>
-    </ListItem>
+          ) : (
+            <Text style={{ width: 25, textAlign: 'center', color: getColor(colorScheme, 'textMuted') }}>
+              {item.order + 1}
+            </Text>
+          )}
+          <ListItem.Content>
+            <View style={styles.listContents}>
+              <View style={styles.listContentsLeft}>
+                <Text style={styles.listTitle}>{item.title}</Text>
+                <Text style={styles.listSubtitle}>{item.album}</Text>
+              </View>
+              <View style={styles.listContentsRight}>
+                <Text style={styles.listItemDuration}>{formatDuration(item?.duration)}</Text>
+                <Button
+                  onPress={() => queueRepository.remove(item.order)}
+                  type="clear"
+                  containerStyle={styles.listItemButton}
+                  icon={<FontAwesomeIcon icon={faTimesCircle} size={14} color={getColor(colorScheme, 'icon')} />}
+                />
+              </View>
+            </View>
+          </ListItem.Content>
+        </ListItem>
+      );
+    },
+    [nowPlaying, playerState]
   );
 
   function Header() {
@@ -104,13 +124,13 @@ export default function PlayQueueScreen() {
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <DraggableFlatList
         ListHeaderComponent={<Header />}
         style={styles.list}
         data={queue}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
-        extraData={[nowPlaying, playerState]}
+        keyExtractor={item => item?.id}
+        onDragEnd={async ({ data }) => await reorder(data)}
       />
       {isLoaded && queue.length === 0 ? <EmptyQueue /> : null}
     </View>

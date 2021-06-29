@@ -163,8 +163,7 @@ function SyncButton() {
 function getStyles(colorScheme: ColorSchemeName) {
   return StyleSheet.create({
     container: {
-      flex: 1,
-      paddingHorizontal: 6,
+      flex: 1
     },
     card: {
       flexDirection: 'column',

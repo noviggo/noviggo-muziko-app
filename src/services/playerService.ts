@@ -12,8 +12,6 @@ import { getImageColor } from '../utilities';
 export async function initTrackPlayer(queue: Queued[]) {
   TrackPlayer.destroy();
   await TrackPlayer.setupPlayer({
-    maxCacheSize: 5120,
-    minBuffer: 5,
   });
   console.log('Player Registered');
   if (queue.length > 0) {
@@ -42,7 +40,7 @@ export async function playPause() {
   const playerState = await TrackPlayer.getState();
   if (playerState === State.Playing) {
     await TrackPlayer.pause();
-  } else if (playerState === State.Paused) {
+  } else {
     await TrackPlayer.play();
   }
 }
@@ -83,10 +81,15 @@ export async function trackNowPlaying() {
 
 export async function clearNowPlaying() {
   await TrackPlayer.stop();
+  await TrackPlayer.clearNowPlayingMetadata();
   await TrackPlayer.reset();
   await AsyncStorage.removeItem(nowPlayingPositionKey);
   store.dispatch(setNowPlaying(null));
   store.dispatch(setNowPlayingBackground('transparent'));
+}
+
+export async function stop() {
+  await TrackPlayer.stop();
 }
 
 export async function trackPlayerState(state: State) {

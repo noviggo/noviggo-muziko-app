@@ -8,6 +8,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, useColorScheme, View } from 'react-native';
@@ -18,7 +19,7 @@ import TrackPlayer, { State, useProgress } from 'react-native-track-player';
 
 import Colors from '../constants/Colors';
 import { useAppSelector } from '../hooks/useRedux';
-import { playPause, skipToNext, skipToPrevious } from '../services/playerService';
+import { playPause, skipToNext, skipToPrevious, stop } from '../services/playerService';
 import { getNowPlayingBackground } from '../slices/nowPlayingBackgroundSlice';
 import { getNowPlaying } from '../slices/nowPlayingSlice';
 import { getPlayerState } from '../slices/playerStateSlice';
@@ -69,6 +70,11 @@ export default function NowPlayingScreen() {
 
   const onPressPlayPause = () => {
     playPause();
+  };
+
+  const onLongPressPlayPause = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    stop();
   };
 
   const onPressNext = () => {
@@ -135,6 +141,7 @@ export default function NowPlayingScreen() {
           />
           <Button
             onPress={onPressPlayPause}
+            onLongPress={onLongPressPlayPause}
             containerStyle={styles.controlButton}
             type="clear"
             icon={
