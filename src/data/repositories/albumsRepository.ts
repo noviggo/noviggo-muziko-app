@@ -45,11 +45,22 @@ export class AlbumsRepository {
 
   public async createBulk(albums: Album[]): Promise<Album[]> {
     if (albums.length === 0) return albums;
-    await this.ormRepository.save(albums, { chunk: 300 });
+    const mediaPageSize = 40;
+    const mediaPages = Math.ceil(albums.length / mediaPageSize);
+    let offset = 0;
+    for (let index = 0; index < mediaPages; index++) {
+      const pagedAlbums = albums.slice(offset, offset + mediaPageSize);
+      offset += pagedAlbums.length;
+      await this.ormRepository.insert(pagedAlbums);
+    }
     return albums;
   }
 
   public async delete(id: number): Promise<void> {
     await this.ormRepository.delete(id);
+  }
+
+  public async deleteBulk(albums: Album[]): Promise<void> {
+    await this.ormRepository.remove(albums, { chunk: 500 });
   }
 }

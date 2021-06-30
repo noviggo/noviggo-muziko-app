@@ -47,13 +47,25 @@ export class TracksRepository {
     await this.ormRepository.save(track);
     return track;
   }
+
   public async createBulk(tracks: Track[]): Promise<Track[]> {
     if (tracks.length === 0) return tracks;
-    await this.ormRepository.save(tracks, { chunk: 300 });
+    const mediaPageSize = 40;
+    const mediaPages = Math.ceil(tracks.length / mediaPageSize);
+    let offset = 0;
+    for (let index = 0; index < mediaPages; index++) {
+      const pagedTracks = tracks.slice(offset, offset + mediaPageSize);
+      offset += pagedTracks.length;
+      await this.ormRepository.insert(pagedTracks);
+    }
     return tracks;
   }
 
   public async delete(id: number): Promise<void> {
     await this.ormRepository.delete(id);
+  }
+
+  public async deleteBulk(tracks: Track[]): Promise<void> {
+    await this.ormRepository.remove(tracks, { chunk: 500 });
   }
 }

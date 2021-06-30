@@ -42,6 +42,9 @@ export class Track {
   @Column({ nullable: true })
   modificationTime?: number;
 
+  @Column({ nullable: true })
+  lastWriteDate?: Date;
+
   @Column()
   filename: string;
 
@@ -79,6 +82,9 @@ export class Artist {
   @Column({ nullable: true })
   artwork?: string;
 
+  @Column()
+  noArtwork: boolean;
+
   @OneToMany(() => Album, albumRelation => albumRelation.artistRelation, {
     nullable: true,
     onUpdate: 'CASCADE',
@@ -104,6 +110,9 @@ export class Album {
 
   @Column({ nullable: true })
   artwork?: string;
+
+  @Column()
+  noArtwork: boolean;
 
   @OneToMany(() => Track, trackRelation => trackRelation.albumRelation, {
     nullable: true,

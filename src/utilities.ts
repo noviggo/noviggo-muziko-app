@@ -13,6 +13,15 @@ export function formatDuration(secondDuration: number) {
   return `${days}${hours}${minutes}${seconds}`;
 }
 
+export function formatDurationMilliseconds(milliseconds: number) {
+  const duration = intervalToDuration({ start: 0, end: milliseconds });
+  const seconds = duration.seconds ? `${duration.seconds < 10 ? '0' : ''}${duration.seconds}` : '00';
+  const minutes = duration.minutes ? `${duration.minutes < 10 ? '0' : ''}${duration.minutes}:` : '00:';
+  const hours = duration.hours ? `${duration.hours < 10 ? '0' : ''}${duration.hours}:` : '';
+  const days = duration.days ? `${duration.days}:` : '';
+  return `${days}${hours}${minutes}${seconds}`;
+}
+
 export function getColor(
   colorScheme: ColorSchemeName,
   property:

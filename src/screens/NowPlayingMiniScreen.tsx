@@ -108,21 +108,21 @@ export default function NowPlayingMiniScreen() {
               <TouchableOpacity onPress={onPressNowPlaying} activeOpacity={0.8}>
                 <TextTicker
                   style={[styles.trackTitle, { color: getColor(colorScheme, 'text') }]}
-                  duration={3000}
+                  duration={4000}
                   loop
                   bounce
                   repeatSpacer={50}
-                  marqueeDelay={1000}
+                  marqueeDelay={4000}
                 >
                   {nowPlaying?.title}
                 </TextTicker>
                 <TextTicker
                   style={[styles.trackArtist, { color: getColor(colorScheme, 'textMuted') }]}
-                  duration={3000}
+                  duration={4000}
                   loop
                   bounce
                   repeatSpacer={50}
-                  marqueeDelay={1000}
+                  marqueeDelay={4000}
                 >
                   {nowPlaying?.artist}
                 </TextTicker>
@@ -186,7 +186,8 @@ const getStyles = (colorScheme: ColorSchemeName) =>
     trackContainer: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     trackInfo: {
       flex: 1,
-      paddingHorizontal: 20,
+      paddingLeft: 20,
+      paddingRight: 5,
     },
     trackTitle: {
       fontSize: 12,
@@ -196,7 +197,7 @@ const getStyles = (colorScheme: ColorSchemeName) =>
       fontSize: 10,
     },
     controlButton: {
-      padding: 3,
+      padding: 2,
       borderRadius: 50,
     },
     controls: {

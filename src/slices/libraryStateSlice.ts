@@ -59,9 +59,9 @@ export const libraryStateSlice = createSlice({
       state.lastUpdated = new Date().getTime();
       return state;
     },
-    syncSaving: (state: LibraryState) => {
+    syncSaving: (state: LibraryState, action: PayloadAction<string>) => {
       state.lastUpdated = new Date().getTime();
-      state.progressMessage = 'Saving';
+      state.progressMessage = action.payload;
       return state;
     },
     syncFailed: (state: LibraryState, action: PayloadAction<string>) => {
@@ -75,7 +75,7 @@ export const libraryStateSlice = createSlice({
     syncComplete: (state: LibraryState) => {
       state.isSyncing = false;
       state.lastUpdated = new Date().getTime();
-      state.progressMessage = 'Completed';
+      state.progressMessage = `Completed`;
       state.syncSucceeded = true;
       return state;
     },

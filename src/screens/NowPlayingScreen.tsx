@@ -119,11 +119,11 @@ export default function NowPlayingScreen() {
         <View style={styles.trackInfo}>
           <TextTicker
             style={[styles.trackTitle, { color: getColor(colorScheme, 'text') }]}
-            duration={3000}
+            duration={4000}
             loop
             bounce
             repeatSpacer={50}
-            marqueeDelay={1000}
+            marqueeDelay={3000}
           >
             {nowPlaying?.title}
           </TextTicker>

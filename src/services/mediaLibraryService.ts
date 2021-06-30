@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 import * as MediaLibrary from 'expo-media-library';
 import * as mm from 'music-metadata/lib/core';
 import { IAudioMetadata } from 'music-metadata/lib/type';
@@ -7,6 +8,7 @@ import { SPOTIFY_KEYS } from 'react-native-dotenv';
 import { FileSystem } from 'react-native-unimodules';
 import SpotifyWebApi from 'spotify-web-api-js';
 import { v4 as uuidv4 } from 'uuid';
+import Toast from 'react-native-simple-toast';
 
 import { ApiResponse } from '../data/entities/apiEntities';
 import { Album, Artist, Track } from '../data/entities/mediaEntities';
@@ -25,6 +27,7 @@ import {
   syncStart,
 } from '../slices/libraryStateSlice';
 import { store } from '../store';
+import { formatDurationMilliseconds } from '../utilities';
 
 export async function getTagInfo(uri: string, includeCovers: boolean = false): Promise<IAudioMetadata | undefined> {
   const chunkSize = (includeCovers ? 1024 : 48) * 1024;
@@ -70,7 +73,7 @@ export async function getLocalCoverImage(album: Album, track: Track) {
 export async function getRemoteCoverImage(serverUrl: string, album: Album, track: Track) {
   const filename = `${FileSystem.documentDirectory}${album.id}`;
   const downloadResults = await FileSystem.downloadAsync(`${serverUrl}muziko/api/tracks/${track.id}/artwork`, filename);
-  if (downloadResults.status < 300) album.artwork = filename;
+  downloadResults.status < 300 ? (album.artwork = filename) : (album.noArtwork = true);
 }
 
 export async function getSpotifyCoverImage(album: Album, track: Track, spotifyClient: SpotifyWebApi.SpotifyWebApiJs) {
@@ -79,6 +82,8 @@ export async function getSpotifyCoverImage(album: Album, track: Track, spotifyCl
     const filename = `${FileSystem.documentDirectory}${album.id}`;
     FileSystem.downloadAsync(trackLookup.tracks.items[0].album.images[0].url, filename);
     album.artwork = filename;
+  } else {
+    album.noArtwork = true;
   }
 }
 
@@ -87,9 +92,13 @@ export async function getSpotifyArtistImage(
   track: Track,
   spotifyClient: SpotifyWebApi.SpotifyWebApiJs
 ) {
-  const trackLookup = await spotifyClient.searchTracks(`artist:${track.artist} track:${track.title}`);
+  const trackLookup = await spotifyClient.searchTracks(`artist:${track.artist} track:${track.title}`, { limit: 1 });
   if (trackLookup && trackLookup.tracks.total > 0) {
     const artistLookup = await spotifyClient.getArtist(trackLookup.tracks.items[0].artists[0].id);
+    if (artistLookup.images.length === 0) {
+      artist.noArtwork = true;
+      return;
+    }
     const filename = `${FileSystem.documentDirectory}${artist.id}`;
     FileSystem.downloadAsync(artistLookup.images[0].url, filename);
     artist.artwork = filename;
@@ -191,11 +200,14 @@ export async function syncLocalMediaLibrary(
         store.dispatch(syncIncrement());
       }
     }
-    store.dispatch(syncSaving());
+    store.dispatch(syncSaving('Saving artists'));
     await artistsRepository.createBulk(artists);
+    store.dispatch(syncSaving('Saving albums'));
     await albumsRepository.createBulk(albums);
+    store.dispatch(syncSaving('Saving tracks'));
     await tracksRepository.createBulk(tracks);
-    console.log(Math.floor(Date.now() - start));
+    const duration = formatDurationMilliseconds(Math.floor(Date.now() - start));
+    Toast.show(`Completed in ${duration}`);
     store.dispatch(syncComplete());
   } catch (error) {
     store.dispatch(syncFailed('Failed'));
@@ -224,8 +236,7 @@ export async function syncRemoteMediaLibrary(
       store.dispatch(syncFailed('Network Failure'));
       return;
     }
-
-
+    activateKeepAwake();
     const mediaCountResponse = await client.get<ApiResponse<Track[]>>(`muziko/api/tracks?offset=0&take=-1`);
     const mediaCount = mediaCountResponse.data._meta?.stats?.count ? mediaCountResponse.data._meta?.stats?.count : 0;
     store.dispatch(syncStart(mediaCount));
@@ -243,24 +254,26 @@ export async function syncRemoteMediaLibrary(
       offset += remoteTracks.length;
       for (let index = 0; index < remoteTracks.length; index++) {
         let track = remoteTracks[index];
-        if (track.title) {
-          track = await addRemoteTrack(serverUrl, track, artists, albums, spotifyClient);
-          tracks.push(track);
-          store.dispatch(syncIncrement());
-        }
+        track = await addRemoteTrack(serverUrl, track, artists, albums, spotifyClient);
+        tracks.push(track);
+        store.dispatch(syncIncrement());
       }
     }
-    store.dispatch(syncSaving());
+    store.dispatch(syncSaving('Saving artists'));
     await artistsRepository.createBulk(artists);
+    store.dispatch(syncSaving('Saving albums'));
     await albumsRepository.createBulk(albums);
+    store.dispatch(syncSaving('Saving tracks'));
     await tracksRepository.createBulk(tracks);
-    console.log(Math.floor(Date.now() - start));
+    const duration = formatDurationMilliseconds(Math.floor(Date.now() - start));
+    Toast.show(`Completed in ${duration}`);
     store.dispatch(syncComplete());
   } catch (error) {
     store.dispatch(syncFailed('Failed'));
     alert(error);
   } finally {
     store.dispatch(libraryRefreshed());
+    deactivateKeepAwake();
   }
 }
 
@@ -330,11 +343,11 @@ async function addArtist(track: Track, artists: Array<Artist>, spotifyClient: Sp
   if (!track.artist) return;
   let artist = artists.find(p => p.name === track.artist);
   if (!artist) {
-    artist = { id: uuidv4(), name: track.artist };
+    artist = { id: uuidv4(), name: track.artist, noArtwork: false };
     artists.push(artist);
   }
   track.artistRelation = artist;
-  if (artist.artwork) return artist;
+  if (artist.artwork || artist.noArtwork) return artist;
   await getSpotifyArtistImage(artist, track, spotifyClient);
   return artist;
 }
@@ -343,12 +356,12 @@ async function addAlbum(track: Track, albums: Array<Album>, artist?: Artist, ser
   if (!track.album) return;
   let album = albums.find(p => p.name === track.album);
   if (!album) {
-    album = { id: uuidv4(), name: track.album, tracks: new Array<Track>() };
+    album = { id: uuidv4(), name: track.album, tracks: new Array<Track>(), noArtwork: false };
     albums.push(album);
   }
   track.albumRelation = album;
   if (!album.artistRelation && artist) album.artistRelation = artist;
-  if (album.artwork) return album;
+  if (album.artwork || album.noArtwork) return album;
   track.isRemote && serverUrl
     ? await getRemoteCoverImage(serverUrl, album, track)
     : await getLocalCoverImage(album, track);

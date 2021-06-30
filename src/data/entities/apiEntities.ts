@@ -43,3 +43,25 @@ export interface Instance {
   startedAt?: Date;
   version?: string;
 }
+
+export interface Entity {
+  id?: string;
+  shortId?: string;
+  metadata?: any;
+  createdDate?: Date;
+  updatedDate?: Date;
+  deletedDate?: Date;
+  lastActivityDate?: Date;
+  createdBy?: string;
+  updatedBy?: string;
+  deletedBy?: string;
+  lastActivityBy?: string;
+  isEditing?: boolean;
+}
+
+export interface Folder extends Entity {
+  lastSyncDate?: Date;
+  path: string;
+  totalTracks?: number;
+  status?: string;
+}
