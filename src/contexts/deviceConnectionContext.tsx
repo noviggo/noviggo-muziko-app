@@ -28,7 +28,7 @@ export const DeviceConnectionProvider: React.FC = ({ children }) => {
 
   useEffect(() => {
     if ((!connection || connection.state !== HubConnectionState.Connected) && settings.useRemoteLibrary && settings.remoteLibraryUrl) {
-      connect();
+      //connect();
     }
     return () => {
       const shutdownConnection = async () => {
@@ -36,7 +36,7 @@ export const DeviceConnectionProvider: React.FC = ({ children }) => {
         console.log('Device connection closed');
         connection.stop();
       };
-      shutdownConnection();
+      //shutdownConnection();
     };
   }, [connect, connection, settings]);
 
